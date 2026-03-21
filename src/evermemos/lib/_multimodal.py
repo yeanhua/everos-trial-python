@@ -110,8 +110,8 @@ def upload_files_and_add(
         )
 
     finally:
-        for r in resolved:
-            r.cleanup()
+        for rf in resolved:
+            rf.cleanup()
 
 
 # ─── 异步版本 ───
@@ -217,8 +217,8 @@ async def async_upload_files_and_add(
         )
 
     finally:
-        for r in resolved:
-            r.cleanup()
+        for rf in resolved:
+            rf.cleanup()
 
 
 def _file_desc(fi: FileInput) -> str:
