@@ -1,11 +1,11 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from ..._models import BaseModel
+from .._models import BaseModel
 
-__all__ = ["StorageGeneratePresignedURLResponse"]
+__all__ = ["StorageCreatePresignedURLResponse"]
 
 
-class StorageGeneratePresignedURLResponse(BaseModel):
+class StorageCreatePresignedURLResponse(BaseModel):
     expires_in: int
     """URL expiration in seconds"""
 

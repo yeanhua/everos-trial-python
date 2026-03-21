@@ -4,19 +4,19 @@ from __future__ import annotations
 
 import httpx
 
-from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
-from ..._compat import cached_property
-from ...types.v1 import storage_generate_presigned_url_params
-from ..._resource import SyncAPIResource, AsyncAPIResource
-from ..._response import (
+from ..types import storage_create_presigned_url_params
+from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from .._utils import maybe_transform, async_maybe_transform
+from .._compat import cached_property
+from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import (
     to_raw_response_wrapper,
     to_streamed_response_wrapper,
     async_to_raw_response_wrapper,
     async_to_streamed_response_wrapper,
 )
-from ..._base_client import make_request_options
-from ...types.v1.storage_generate_presigned_url_response import StorageGeneratePresignedURLResponse
+from .._base_client import make_request_options
+from ..types.storage_create_presigned_url_response import StorageCreatePresignedURLResponse
 
 __all__ = ["StorageResource", "AsyncStorageResource"]
 
@@ -41,7 +41,7 @@ class StorageResource(SyncAPIResource):
         """
         return StorageResourceWithStreamingResponse(self)
 
-    def generate_presigned_url(
+    def create_presigned_url(
         self,
         *,
         content_type: str,
@@ -53,7 +53,7 @@ class StorageResource(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> StorageGeneratePresignedURLResponse:
+    ) -> StorageCreatePresignedURLResponse:
         """
         Generate presigned S3 upload URL
 
@@ -76,12 +76,12 @@ class StorageResource(SyncAPIResource):
                     "filename": filename,
                     "file_size": file_size,
                 },
-                storage_generate_presigned_url_params.StorageGeneratePresignedURLParams,
+                storage_create_presigned_url_params.StorageCreatePresignedURLParams,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=StorageGeneratePresignedURLResponse,
+            cast_to=StorageCreatePresignedURLResponse,
         )
 
 
@@ -105,7 +105,7 @@ class AsyncStorageResource(AsyncAPIResource):
         """
         return AsyncStorageResourceWithStreamingResponse(self)
 
-    async def generate_presigned_url(
+    async def create_presigned_url(
         self,
         *,
         content_type: str,
@@ -117,7 +117,7 @@ class AsyncStorageResource(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> StorageGeneratePresignedURLResponse:
+    ) -> StorageCreatePresignedURLResponse:
         """
         Generate presigned S3 upload URL
 
@@ -140,12 +140,12 @@ class AsyncStorageResource(AsyncAPIResource):
                     "filename": filename,
                     "file_size": file_size,
                 },
-                storage_generate_presigned_url_params.StorageGeneratePresignedURLParams,
+                storage_create_presigned_url_params.StorageCreatePresignedURLParams,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=StorageGeneratePresignedURLResponse,
+            cast_to=StorageCreatePresignedURLResponse,
         )
 
 
@@ -153,8 +153,8 @@ class StorageResourceWithRawResponse:
     def __init__(self, storage: StorageResource) -> None:
         self._storage = storage
 
-        self.generate_presigned_url = to_raw_response_wrapper(
-            storage.generate_presigned_url,
+        self.create_presigned_url = to_raw_response_wrapper(
+            storage.create_presigned_url,
         )
 
 
@@ -162,8 +162,8 @@ class AsyncStorageResourceWithRawResponse:
     def __init__(self, storage: AsyncStorageResource) -> None:
         self._storage = storage
 
-        self.generate_presigned_url = async_to_raw_response_wrapper(
-            storage.generate_presigned_url,
+        self.create_presigned_url = async_to_raw_response_wrapper(
+            storage.create_presigned_url,
         )
 
 
@@ -171,8 +171,8 @@ class StorageResourceWithStreamingResponse:
     def __init__(self, storage: StorageResource) -> None:
         self._storage = storage
 
-        self.generate_presigned_url = to_streamed_response_wrapper(
-            storage.generate_presigned_url,
+        self.create_presigned_url = to_streamed_response_wrapper(
+            storage.create_presigned_url,
         )
 
 
@@ -180,6 +180,6 @@ class AsyncStorageResourceWithStreamingResponse:
     def __init__(self, storage: AsyncStorageResource) -> None:
         self._storage = storage
 
-        self.generate_presigned_url = async_to_streamed_response_wrapper(
-            storage.generate_presigned_url,
+        self.create_presigned_url = async_to_streamed_response_wrapper(
+            storage.create_presigned_url,
         )

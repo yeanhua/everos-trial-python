@@ -2,7 +2,7 @@ import operator
 from typing import Any
 from typing_extensions import override
 
-from everos_trial._utils import LazyProxy
+from evermemos._utils import LazyProxy
 
 
 class RecursiveLazyProxy(LazyProxy[Any]):

@@ -5,10 +5,10 @@ from datetime import datetime
 
 from .._models import BaseModel
 
-__all__ = ["V1AddMemoryResponse"]
+__all__ = ["MemoryAddResponse"]
 
 
-class V1AddMemoryResponse(BaseModel):
+class MemoryAddResponse(BaseModel):
     id: str
 
     content: str

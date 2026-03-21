@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from everos_trial._utils._path import path_template
+from evermemos._utils._path import path_template
 
 
 @pytest.mark.parametrize(

@@ -7,17 +7,17 @@ from ._proxy import LazyProxy
 
 
 class ResourcesProxy(LazyProxy[Any]):
-    """A proxy for the `everos_trial.resources` module.
+    """A proxy for the `evermemos.resources` module.
 
-    This is used so that we can lazily import `everos_trial.resources` only when
-    needed *and* so that users can just import `everos_trial` and reference `everos_trial.resources`
+    This is used so that we can lazily import `evermemos.resources` only when
+    needed *and* so that users can just import `evermemos` and reference `evermemos.resources`
     """
 
     @override
     def __load__(self) -> Any:
         import importlib
 
-        mod = importlib.import_module("everos_trial.resources")
+        mod = importlib.import_module("evermemos.resources")
         return mod
 
 

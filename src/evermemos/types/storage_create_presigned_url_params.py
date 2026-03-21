@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing_extensions import Required, TypedDict
 
-__all__ = ["StorageGeneratePresignedURLParams"]
+__all__ = ["StorageCreatePresignedURLParams"]
 
 
-class StorageGeneratePresignedURLParams(TypedDict, total=False):
+class StorageCreatePresignedURLParams(TypedDict, total=False):
     content_type: Required[str]
 
     filename: Required[str]

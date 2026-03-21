@@ -4,7 +4,7 @@ from urllib.parse import unquote
 
 import pytest
 
-from everos_trial._qs import Querystring, stringify
+from evermemos._qs import Querystring, stringify
 
 
 def test_empty() -> None:
