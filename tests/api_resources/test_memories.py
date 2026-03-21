@@ -33,6 +33,7 @@ class TestMemories:
             content="content",
             user_id="user_id",
             object_keys=["string"],
+            tags=["string"],
             type="text",
         )
         assert_matches_type(MemoryAddResponse, memory, path=["response"])
@@ -87,6 +88,7 @@ class TestAsyncMemories:
             content="content",
             user_id="user_id",
             object_keys=["string"],
+            tags=["string"],
             type="text",
         )
         assert_matches_type(MemoryAddResponse, memory, path=["response"])

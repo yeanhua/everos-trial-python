@@ -16,4 +16,7 @@ class MemoryAddParams(TypedDict, total=False):
 
     object_keys: SequenceNotStr[str]
 
+    tags: SequenceNotStr[str]
+    """User-defined tags"""
+
     type: Literal["text", "image", "video", "document"]

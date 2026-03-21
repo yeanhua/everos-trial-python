@@ -49,6 +49,7 @@ class MemoriesResource(SyncAPIResource):
         content: str,
         user_id: str,
         object_keys: SequenceNotStr[str] | Omit = omit,
+        tags: SequenceNotStr[str] | Omit = omit,
         type: Literal["text", "image", "video", "document"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -61,6 +62,8 @@ class MemoriesResource(SyncAPIResource):
         Add a memory (text or multimodal)
 
         Args:
+          tags: User-defined tags
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -76,6 +79,7 @@ class MemoriesResource(SyncAPIResource):
                     "content": content,
                     "user_id": user_id,
                     "object_keys": object_keys,
+                    "tags": tags,
                     "type": type,
                 },
                 memory_add_params.MemoryAddParams,
@@ -113,6 +117,7 @@ class AsyncMemoriesResource(AsyncAPIResource):
         content: str,
         user_id: str,
         object_keys: SequenceNotStr[str] | Omit = omit,
+        tags: SequenceNotStr[str] | Omit = omit,
         type: Literal["text", "image", "video", "document"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -125,6 +130,8 @@ class AsyncMemoriesResource(AsyncAPIResource):
         Add a memory (text or multimodal)
 
         Args:
+          tags: User-defined tags
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -140,6 +147,7 @@ class AsyncMemoriesResource(AsyncAPIResource):
                     "content": content,
                     "user_id": user_id,
                     "object_keys": object_keys,
+                    "tags": tags,
                     "type": type,
                 },
                 memory_add_params.MemoryAddParams,
