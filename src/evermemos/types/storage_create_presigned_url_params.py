@@ -13,4 +13,3 @@ class StorageCreatePresignedURLParams(TypedDict, total=False):
     filename: Required[str]
 
     file_size: int
-    """File size in bytes (optional, for server validation)"""

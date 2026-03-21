@@ -58,8 +58,6 @@ class StorageResource(SyncAPIResource):
         Generate presigned S3 upload URL
 
         Args:
-          file_size: File size in bytes (optional, for server validation)
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -122,8 +120,6 @@ class AsyncStorageResource(AsyncAPIResource):
         Generate presigned S3 upload URL
 
         Args:
-          file_size: File size in bytes (optional, for server validation)
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request

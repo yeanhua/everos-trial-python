@@ -20,3 +20,6 @@ class MemoryAddResponse(BaseModel):
     user_id: str
 
     object_keys: Optional[List[str]] = None
+
+    tags: Optional[List[str]] = None
+    """User-defined tags (new in v2)"""
