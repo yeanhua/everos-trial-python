@@ -11,7 +11,7 @@ from ._files import ResolvedFile
 from ._errors import UploadError
 
 if TYPE_CHECKING:
-    from .._client import EverMemOS, AsyncEverMemOS
+    from .._client import EverMemOs, AsyncEverMemOs
 
 
 @dataclass
@@ -29,7 +29,7 @@ _CHUNK_SIZE = 64 * 1024  # 64KB
 
 
 def presign_and_upload(
-    client: "EverMemOS",
+    client: "EverMemOs",
     resolved: ResolvedFile,
 ) -> UploadResult:
     """同步：presign → 流式 PUT 上传到 S3。"""
@@ -54,7 +54,7 @@ def presign_and_upload(
 
 
 async def async_presign_and_upload(
-    client: "AsyncEverMemOS",
+    client: "AsyncEverMemOs",
     resolved: ResolvedFile,
 ) -> UploadResult:
     """异步：presign → 流式 PUT 上传到 S3。"""
@@ -122,15 +122,15 @@ async def _async_stream_upload_to_s3(presigned_url: str, resolved: ResolvedFile)
     import anyio
 
     async def _async_chunks():
-        f = await anyio.to_thread.run_sync(resolved.open)
+        f = await anyio.to_thread.run_sync(resolved.open)  # type: ignore[reportUnknownMemberType]
         try:
             while True:
-                chunk = await anyio.to_thread.run_sync(lambda: f.read(_CHUNK_SIZE))
+                chunk = await anyio.to_thread.run_sync(lambda: f.read(_CHUNK_SIZE))  # type: ignore[reportUnknownMemberType]
                 if not chunk:
                     break
                 yield chunk
         finally:
-            await anyio.to_thread.run_sync(f.close)
+            await anyio.to_thread.run_sync(f.close)  # type: ignore[reportUnknownMemberType]
 
     last_error = None
     for _attempt in range(_MAX_RETRIES):

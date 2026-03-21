@@ -99,7 +99,7 @@ async def async_resolve_file(
 
     if file_input.path is not None:
         import anyio
-        return await anyio.to_thread.run_sync(lambda: _resolve_from_path(file_input))
+        return await anyio.to_thread.run_sync(lambda: _resolve_from_path(file_input))  # type: ignore[reportUnknownMemberType]
     elif file_input.url is not None:
         return await _async_resolve_from_url(file_input, max_download_size, download_timeout)
     elif file_input.data is not None:

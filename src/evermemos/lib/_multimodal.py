@@ -16,8 +16,10 @@ from ._errors import MultimodalError, FileResolveError
 from ._upload import UploadResult, presign_and_upload, async_presign_and_upload
 
 if TYPE_CHECKING:
+    from typing import Awaitable
+
+    from ..resources.memories import MemoriesResource, AsyncMemoriesResource
     from ..types.memory_add_response import MemoryAddResponse
-    from ..resources.memories.memories import MemoriesResource, AsyncMemoriesResource
 
 
 # ─── 同步版本 ───
@@ -123,7 +125,7 @@ async def async_upload_files_and_add(
     files: list[FileInput],
     user_id: str,
     on_progress: Callable[[str, int, int], None] | None = None,
-    raw_add_fn: "Callable[..., MemoryAddResponse]",
+    raw_add_fn: "Callable[..., Awaitable[MemoryAddResponse]]",
     **kwargs,
 ) -> "MemoryAddResponse":
     """异步编排：并发解析（保序）→ 并发上传（fail-fast）→ add。
@@ -143,7 +145,7 @@ async def async_upload_files_and_add(
         resolve_results = await asyncio.gather(*resolve_tasks, return_exceptions=True)
 
         for i, result in enumerate(resolve_results):
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 for r in resolve_results[:i]:
                     if isinstance(r, ResolvedFile):
                         r.cleanup()
@@ -171,7 +173,7 @@ async def async_upload_files_and_add(
             upload_tasks, return_when=asyncio.FIRST_EXCEPTION
         )
 
-        first_error: Exception | None = None
+        first_error: BaseException | None = None
         first_error_idx: int = -1
         for task in done:
             idx = task_to_idx[task]

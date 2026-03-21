@@ -102,7 +102,6 @@ class EverMemOs(SyncAPIClient):
 
     @cached_property
     def memories(self) -> MemoriesResource:
-
         from .lib._memories_ext import MemoriesResourceWithMultimodal
         return MemoriesResourceWithMultimodal(self)
 

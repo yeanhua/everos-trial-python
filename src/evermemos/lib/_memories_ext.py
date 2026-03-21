@@ -13,18 +13,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Callable, Optional
+from typing import TYPE_CHECKING, List, Literal, Callable, Optional, cast
 
 from ._files import FileInput
 from ._errors import MultimodalError
 
-# 兼容两种 SDK 布局：
-#   Stainless 生成（扁平）: resources/memories.py  → from ..resources.memories import MemoriesResource
-#   sdk_stub（包）:         resources/memories/memories.py → from ..resources.memories.memories import MemoriesResource
-try:
-    from ..resources.memories.memories import MemoriesResource  # sdk_stub / package layout
-except ModuleNotFoundError:
-    from ..resources.memories import MemoriesResource  # type: ignore[no-redef]  # Stainless flat layout
+# Stainless 生成的 SDK 使用扁平 layout: resources/memories.py
+from ..resources.memories import MemoriesResource  # type: ignore[reportAttributeAccessIssue]
 
 if TYPE_CHECKING:
     from ..types.memory_add_response import MemoryAddResponse
@@ -95,7 +90,7 @@ class MemoriesResourceWithMultimodal(MemoriesResource):
         return upload_files_and_add(
             self,
             content=content,
-            type=type,
+            type=cast("Literal['image', 'video', 'document']", type),
             files=files,
             user_id=user_id,
             on_progress=on_progress,
