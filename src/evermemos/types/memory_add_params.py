@@ -6,10 +6,10 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .._types import SequenceNotStr
 
-__all__ = ["V1AddMemoryParams"]
+__all__ = ["MemoryAddParams"]
 
 
-class V1AddMemoryParams(TypedDict, total=False):
+class MemoryAddParams(TypedDict, total=False):
     content: Required[str]
     """Memory text content"""
 

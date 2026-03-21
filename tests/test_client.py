@@ -19,12 +19,12 @@ import pytest
 from respx import MockRouter
 from pydantic import ValidationError
 
-from everos_trial import EverosTrial, AsyncEverosTrial, APIResponseValidationError
-from everos_trial._types import Omit
-from everos_trial._utils import asyncify
-from everos_trial._models import BaseModel, FinalRequestOptions
-from everos_trial._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
-from everos_trial._base_client import (
+from evermemos import EverMemOs, AsyncEverMemOs, APIResponseValidationError
+from evermemos._types import Omit
+from evermemos._utils import asyncify
+from evermemos._models import BaseModel, FinalRequestOptions
+from evermemos._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
+from evermemos._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
     BaseClient,
@@ -103,7 +103,7 @@ async def _make_async_iterator(iterable: Iterable[T], counter: Optional[Counter]
         yield item
 
 
-def _get_open_connections(client: EverosTrial | AsyncEverosTrial) -> int:
+def _get_open_connections(client: EverMemOs | AsyncEverMemOs) -> int:
     transport = client._client._transport
     assert isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport)
 
@@ -111,9 +111,9 @@ def _get_open_connections(client: EverosTrial | AsyncEverosTrial) -> int:
     return len(pool._requests)
 
 
-class TestEverosTrial:
+class TestEverMemOs:
     @pytest.mark.respx(base_url=base_url)
-    def test_raw_response(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_raw_response(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
 
         response = client.post("/foo", cast_to=httpx.Response)
@@ -122,7 +122,7 @@ class TestEverosTrial:
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
-    def test_raw_response_for_binary(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_raw_response_for_binary(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         respx_mock.post("/foo").mock(
             return_value=httpx.Response(200, headers={"Content-Type": "application/binary"}, content='{"foo": "bar"}')
         )
@@ -132,7 +132,7 @@ class TestEverosTrial:
         assert isinstance(response, httpx.Response)
         assert response.json() == {"foo": "bar"}
 
-    def test_copy(self, client: EverosTrial) -> None:
+    def test_copy(self, client: EverMemOs) -> None:
         copied = client.copy()
         assert id(copied) != id(client)
 
@@ -140,7 +140,7 @@ class TestEverosTrial:
         assert copied.api_key == "another My API Key"
         assert client.api_key == "My API Key"
 
-    def test_copy_default_options(self, client: EverosTrial) -> None:
+    def test_copy_default_options(self, client: EverMemOs) -> None:
         # options that have a default are overridden correctly
         copied = client.copy(max_retries=7)
         assert copied.max_retries == 7
@@ -157,7 +157,7 @@ class TestEverosTrial:
         assert isinstance(client.timeout, httpx.Timeout)
 
     def test_copy_default_headers(self) -> None:
-        client = EverosTrial(
+        client = EverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
         )
         assert client.default_headers["X-Foo"] == "bar"
@@ -192,7 +192,7 @@ class TestEverosTrial:
         client.close()
 
     def test_copy_default_query(self) -> None:
-        client = EverosTrial(
+        client = EverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
         )
         assert _get_params(client)["foo"] == "bar"
@@ -229,7 +229,7 @@ class TestEverosTrial:
 
         client.close()
 
-    def test_copy_signature(self, client: EverosTrial) -> None:
+    def test_copy_signature(self, client: EverMemOs) -> None:
         # ensure the same parameters that can be passed to the client are defined in the `.copy()` method
         init_signature = inspect.signature(
             # mypy doesn't like that we access the `__init__` property.
@@ -246,7 +246,7 @@ class TestEverosTrial:
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
     @pytest.mark.skipif(sys.version_info >= (3, 10), reason="fails because of a memory leak that started from 3.12")
-    def test_copy_build_request(self, client: EverosTrial) -> None:
+    def test_copy_build_request(self, client: EverMemOs) -> None:
         options = FinalRequestOptions(method="get", url="/foo")
 
         def build_request(options: FinalRequestOptions) -> None:
@@ -286,10 +286,10 @@ class TestEverosTrial:
                         # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
                         #
                         # removing the decorator fixes the leak for reasons we don't understand.
-                        "everos_trial/_legacy_response.py",
-                        "everos_trial/_response.py",
+                        "evermemos/_legacy_response.py",
+                        "evermemos/_response.py",
                         # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
-                        "everos_trial/_compat.py",
+                        "evermemos/_compat.py",
                         # Standard library leaks we don't care about.
                         "/logging/__init__.py",
                     ]
@@ -308,7 +308,7 @@ class TestEverosTrial:
                     print(frame)
             raise AssertionError()
 
-    def test_request_timeout(self, client: EverosTrial) -> None:
+    def test_request_timeout(self, client: EverMemOs) -> None:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
         assert timeout == DEFAULT_TIMEOUT
@@ -318,7 +318,7 @@ class TestEverosTrial:
         assert timeout == httpx.Timeout(100.0)
 
     def test_client_timeout_option(self) -> None:
-        client = EverosTrial(
+        client = EverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
         )
 
@@ -331,7 +331,7 @@ class TestEverosTrial:
     def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
         with httpx.Client(timeout=None) as http_client:
-            client = EverosTrial(
+            client = EverMemOs(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -343,7 +343,7 @@ class TestEverosTrial:
 
         # no timeout given to the httpx client should not use the httpx default
         with httpx.Client() as http_client:
-            client = EverosTrial(
+            client = EverMemOs(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -355,7 +355,7 @@ class TestEverosTrial:
 
         # explicitly passing the default timeout currently results in it being ignored
         with httpx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
-            client = EverosTrial(
+            client = EverMemOs(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -368,7 +368,7 @@ class TestEverosTrial:
     async def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             async with httpx.AsyncClient() as http_client:
-                EverosTrial(
+                EverMemOs(
                     base_url=base_url,
                     api_key=api_key,
                     _strict_response_validation=True,
@@ -376,14 +376,14 @@ class TestEverosTrial:
                 )
 
     def test_default_headers_option(self) -> None:
-        test_client = EverosTrial(
+        test_client = EverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
         )
         request = test_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
         assert request.headers.get("x-stainless-lang") == "python"
 
-        test_client2 = EverosTrial(
+        test_client2 = EverMemOs(
             base_url=base_url,
             api_key=api_key,
             _strict_response_validation=True,
@@ -400,12 +400,12 @@ class TestEverosTrial:
         test_client2.close()
 
     def test_validate_headers(self) -> None:
-        client = EverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = EverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with update_env(**{"EVEROS_TRIAL_API_KEY": Omit()}):
-            client2 = EverosTrial(base_url=base_url, api_key=None, _strict_response_validation=True)
+        with update_env(**{"EVERMEMOS_API_KEY": Omit()}):
+            client2 = EverMemOs(base_url=base_url, api_key=None, _strict_response_validation=True)
 
         with pytest.raises(
             TypeError,
@@ -419,7 +419,7 @@ class TestEverosTrial:
         assert request2.headers.get("Authorization") is None
 
     def test_default_query_option(self) -> None:
-        client = EverosTrial(
+        client = EverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -438,7 +438,7 @@ class TestEverosTrial:
 
         client.close()
 
-    def test_request_extra_json(self, client: EverosTrial) -> None:
+    def test_request_extra_json(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -472,7 +472,7 @@ class TestEverosTrial:
         data = json.loads(request.content.decode("utf-8"))
         assert data == {"foo": "bar", "baz": None}
 
-    def test_request_extra_headers(self, client: EverosTrial) -> None:
+    def test_request_extra_headers(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -494,7 +494,7 @@ class TestEverosTrial:
         )
         assert request.headers.get("X-Bar") == "false"
 
-    def test_request_extra_query(self, client: EverosTrial) -> None:
+    def test_request_extra_query(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -535,7 +535,7 @@ class TestEverosTrial:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
-    def test_multipart_repeating_array(self, client: EverosTrial) -> None:
+    def test_multipart_repeating_array(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions.construct(
                 method="post",
@@ -565,7 +565,7 @@ class TestEverosTrial:
         ]
 
     @pytest.mark.respx(base_url=base_url)
-    def test_binary_content_upload(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_binary_content_upload(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         respx_mock.post("/upload").mock(side_effect=mirror_request_content)
 
         file_content = b"Hello, this is a test file."
@@ -590,7 +590,7 @@ class TestEverosTrial:
             assert counter.value == 0, "the request body should not have been read"
             return httpx.Response(200, content=request.read())
 
-        with EverosTrial(
+        with EverMemOs(
             base_url=base_url,
             api_key=api_key,
             _strict_response_validation=True,
@@ -609,7 +609,7 @@ class TestEverosTrial:
             assert counter.value == 1
 
     @pytest.mark.respx(base_url=base_url)
-    def test_binary_content_upload_with_body_is_deprecated(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_binary_content_upload_with_body_is_deprecated(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         respx_mock.post("/upload").mock(side_effect=mirror_request_content)
 
         file_content = b"Hello, this is a test file."
@@ -629,7 +629,7 @@ class TestEverosTrial:
         assert response.content == file_content
 
     @pytest.mark.respx(base_url=base_url)
-    def test_basic_union_response(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_basic_union_response(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         class Model1(BaseModel):
             name: str
 
@@ -643,7 +643,7 @@ class TestEverosTrial:
         assert response.foo == "bar"
 
     @pytest.mark.respx(base_url=base_url)
-    def test_union_response_different_types(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_union_response_different_types(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         """Union of objects with the same field name using a different type"""
 
         class Model1(BaseModel):
@@ -665,7 +665,7 @@ class TestEverosTrial:
         assert response.foo == 1
 
     @pytest.mark.respx(base_url=base_url)
-    def test_non_application_json_content_type_for_json_data(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_non_application_json_content_type_for_json_data(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         """
         Response that sets Content-Type to something other than application/json but returns json data
         """
@@ -686,9 +686,7 @@ class TestEverosTrial:
         assert response.foo == 2
 
     def test_base_url_setter(self) -> None:
-        client = EverosTrial(
-            base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
-        )
+        client = EverMemOs(base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True)
         assert client.base_url == "https://example.com/from_init/"
 
         client.base_url = "https://example.com/from_setter"  # type: ignore[assignment]
@@ -698,17 +696,15 @@ class TestEverosTrial:
         client.close()
 
     def test_base_url_env(self) -> None:
-        with update_env(EVEROS_TRIAL_BASE_URL="http://localhost:5000/from/env"):
-            client = EverosTrial(api_key=api_key, _strict_response_validation=True)
+        with update_env(EVER_MEM_OS_BASE_URL="http://localhost:5000/from/env"):
+            client = EverMemOs(api_key=api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
-            EverosTrial(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            EverosTrial(
+            EverMemOs(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            EverMemOs(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -717,7 +713,7 @@ class TestEverosTrial:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_trailing_slash(self, client: EverosTrial) -> None:
+    def test_base_url_trailing_slash(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -731,10 +727,8 @@ class TestEverosTrial:
     @pytest.mark.parametrize(
         "client",
         [
-            EverosTrial(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            EverosTrial(
+            EverMemOs(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            EverMemOs(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -743,7 +737,7 @@ class TestEverosTrial:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_no_trailing_slash(self, client: EverosTrial) -> None:
+    def test_base_url_no_trailing_slash(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -757,10 +751,8 @@ class TestEverosTrial:
     @pytest.mark.parametrize(
         "client",
         [
-            EverosTrial(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            EverosTrial(
+            EverMemOs(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            EverMemOs(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -769,7 +761,7 @@ class TestEverosTrial:
         ],
         ids=["standard", "custom http client"],
     )
-    def test_absolute_request_url(self, client: EverosTrial) -> None:
+    def test_absolute_request_url(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -781,7 +773,7 @@ class TestEverosTrial:
         client.close()
 
     def test_copied_client_does_not_close_http(self) -> None:
-        test_client = EverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = EverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         assert not test_client.is_closed()
 
         copied = test_client.copy()
@@ -792,7 +784,7 @@ class TestEverosTrial:
         assert not test_client.is_closed()
 
     def test_client_context_manager(self) -> None:
-        test_client = EverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = EverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         with test_client as c2:
             assert c2 is test_client
             assert not c2.is_closed()
@@ -800,7 +792,7 @@ class TestEverosTrial:
         assert test_client.is_closed()
 
     @pytest.mark.respx(base_url=base_url)
-    def test_client_response_validation_error(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_client_response_validation_error(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         class Model(BaseModel):
             foo: str
 
@@ -813,9 +805,7 @@ class TestEverosTrial:
 
     def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            EverosTrial(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None)
-            )
+            EverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None))
 
     @pytest.mark.respx(base_url=base_url)
     def test_received_text_for_expected_json(self, respx_mock: MockRouter) -> None:
@@ -824,12 +814,12 @@ class TestEverosTrial:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = EverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = EverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
         with pytest.raises(APIResponseValidationError):
             strict_client.get("/foo", cast_to=Model)
 
-        non_strict_client = EverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        non_strict_client = EverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=False)
 
         response = non_strict_client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -860,39 +850,39 @@ class TestEverosTrial:
     )
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
     def test_parse_retry_after_header(
-        self, remaining_retries: int, retry_after: str, timeout: float, client: EverosTrial
+        self, remaining_retries: int, retry_after: str, timeout: float, client: EverMemOs
     ) -> None:
         headers = httpx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         respx_mock.post("/api/v1/memories").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            client.v1.with_streaming_response.add_memory(content="content", user_id="user_id").__enter__()
+            client.memories.with_streaming_response.add(content="content", user_id="user_id").__enter__()
 
         assert _get_open_connections(client) == 0
 
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         respx_mock.post("/api/v1/memories").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            client.v1.with_streaming_response.add_memory(content="content", user_id="user_id").__enter__()
+            client.memories.with_streaming_response.add(content="content", user_id="user_id").__enter__()
         assert _get_open_connections(client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     def test_retries_taken(
         self,
-        client: EverosTrial,
+        client: EverMemOs,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
         respx_mock: MockRouter,
@@ -912,16 +902,16 @@ class TestEverosTrial:
 
         respx_mock.post("/api/v1/memories").mock(side_effect=retry_handler)
 
-        response = client.v1.with_raw_response.add_memory(content="content", user_id="user_id")
+        response = client.memories.with_raw_response.add(content="content", user_id="user_id")
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_omit_retry_count_header(
-        self, client: EverosTrial, failures_before_success: int, respx_mock: MockRouter
+        self, client: EverMemOs, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = client.with_options(max_retries=4)
 
@@ -936,17 +926,17 @@ class TestEverosTrial:
 
         respx_mock.post("/api/v1/memories").mock(side_effect=retry_handler)
 
-        response = client.v1.with_raw_response.add_memory(
+        response = client.memories.with_raw_response.add(
             content="content", user_id="user_id", extra_headers={"x-stainless-retry-count": Omit()}
         )
 
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_overwrite_retry_count_header(
-        self, client: EverosTrial, failures_before_success: int, respx_mock: MockRouter
+        self, client: EverMemOs, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = client.with_options(max_retries=4)
 
@@ -961,7 +951,7 @@ class TestEverosTrial:
 
         respx_mock.post("/api/v1/memories").mock(side_effect=retry_handler)
 
-        response = client.v1.with_raw_response.add_memory(
+        response = client.memories.with_raw_response.add(
             content="content", user_id="user_id", extra_headers={"x-stainless-retry-count": "42"}
         )
 
@@ -998,7 +988,7 @@ class TestEverosTrial:
         )
 
     @pytest.mark.respx(base_url=base_url)
-    def test_follow_redirects(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_follow_redirects(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         # Test that the default follow_redirects=True allows following redirects
         respx_mock.post("/redirect").mock(
             return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
@@ -1010,7 +1000,7 @@ class TestEverosTrial:
         assert response.json() == {"status": "ok"}
 
     @pytest.mark.respx(base_url=base_url)
-    def test_follow_redirects_disabled(self, respx_mock: MockRouter, client: EverosTrial) -> None:
+    def test_follow_redirects_disabled(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         # Test that follow_redirects=False prevents following redirects
         respx_mock.post("/redirect").mock(
             return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
@@ -1023,9 +1013,9 @@ class TestEverosTrial:
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
 
 
-class TestAsyncEverosTrial:
+class TestAsyncEverMemOs:
     @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response(self, respx_mock: MockRouter, async_client: AsyncEverosTrial) -> None:
+    async def test_raw_response(self, respx_mock: MockRouter, async_client: AsyncEverMemOs) -> None:
         respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
 
         response = await async_client.post("/foo", cast_to=httpx.Response)
@@ -1034,7 +1024,7 @@ class TestAsyncEverosTrial:
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_for_binary(self, respx_mock: MockRouter, async_client: AsyncEverosTrial) -> None:
+    async def test_raw_response_for_binary(self, respx_mock: MockRouter, async_client: AsyncEverMemOs) -> None:
         respx_mock.post("/foo").mock(
             return_value=httpx.Response(200, headers={"Content-Type": "application/binary"}, content='{"foo": "bar"}')
         )
@@ -1044,7 +1034,7 @@ class TestAsyncEverosTrial:
         assert isinstance(response, httpx.Response)
         assert response.json() == {"foo": "bar"}
 
-    def test_copy(self, async_client: AsyncEverosTrial) -> None:
+    def test_copy(self, async_client: AsyncEverMemOs) -> None:
         copied = async_client.copy()
         assert id(copied) != id(async_client)
 
@@ -1052,7 +1042,7 @@ class TestAsyncEverosTrial:
         assert copied.api_key == "another My API Key"
         assert async_client.api_key == "My API Key"
 
-    def test_copy_default_options(self, async_client: AsyncEverosTrial) -> None:
+    def test_copy_default_options(self, async_client: AsyncEverMemOs) -> None:
         # options that have a default are overridden correctly
         copied = async_client.copy(max_retries=7)
         assert copied.max_retries == 7
@@ -1069,7 +1059,7 @@ class TestAsyncEverosTrial:
         assert isinstance(async_client.timeout, httpx.Timeout)
 
     async def test_copy_default_headers(self) -> None:
-        client = AsyncEverosTrial(
+        client = AsyncEverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
         )
         assert client.default_headers["X-Foo"] == "bar"
@@ -1104,7 +1094,7 @@ class TestAsyncEverosTrial:
         await client.close()
 
     async def test_copy_default_query(self) -> None:
-        client = AsyncEverosTrial(
+        client = AsyncEverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
         )
         assert _get_params(client)["foo"] == "bar"
@@ -1141,7 +1131,7 @@ class TestAsyncEverosTrial:
 
         await client.close()
 
-    def test_copy_signature(self, async_client: AsyncEverosTrial) -> None:
+    def test_copy_signature(self, async_client: AsyncEverMemOs) -> None:
         # ensure the same parameters that can be passed to the client are defined in the `.copy()` method
         init_signature = inspect.signature(
             # mypy doesn't like that we access the `__init__` property.
@@ -1158,7 +1148,7 @@ class TestAsyncEverosTrial:
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
     @pytest.mark.skipif(sys.version_info >= (3, 10), reason="fails because of a memory leak that started from 3.12")
-    def test_copy_build_request(self, async_client: AsyncEverosTrial) -> None:
+    def test_copy_build_request(self, async_client: AsyncEverMemOs) -> None:
         options = FinalRequestOptions(method="get", url="/foo")
 
         def build_request(options: FinalRequestOptions) -> None:
@@ -1198,10 +1188,10 @@ class TestAsyncEverosTrial:
                         # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
                         #
                         # removing the decorator fixes the leak for reasons we don't understand.
-                        "everos_trial/_legacy_response.py",
-                        "everos_trial/_response.py",
+                        "evermemos/_legacy_response.py",
+                        "evermemos/_response.py",
                         # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
-                        "everos_trial/_compat.py",
+                        "evermemos/_compat.py",
                         # Standard library leaks we don't care about.
                         "/logging/__init__.py",
                     ]
@@ -1220,7 +1210,7 @@ class TestAsyncEverosTrial:
                     print(frame)
             raise AssertionError()
 
-    async def test_request_timeout(self, async_client: AsyncEverosTrial) -> None:
+    async def test_request_timeout(self, async_client: AsyncEverMemOs) -> None:
         request = async_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
         assert timeout == DEFAULT_TIMEOUT
@@ -1232,7 +1222,7 @@ class TestAsyncEverosTrial:
         assert timeout == httpx.Timeout(100.0)
 
     async def test_client_timeout_option(self) -> None:
-        client = AsyncEverosTrial(
+        client = AsyncEverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
         )
 
@@ -1245,7 +1235,7 @@ class TestAsyncEverosTrial:
     async def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
         async with httpx.AsyncClient(timeout=None) as http_client:
-            client = AsyncEverosTrial(
+            client = AsyncEverMemOs(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -1257,7 +1247,7 @@ class TestAsyncEverosTrial:
 
         # no timeout given to the httpx client should not use the httpx default
         async with httpx.AsyncClient() as http_client:
-            client = AsyncEverosTrial(
+            client = AsyncEverMemOs(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -1269,7 +1259,7 @@ class TestAsyncEverosTrial:
 
         # explicitly passing the default timeout currently results in it being ignored
         async with httpx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
-            client = AsyncEverosTrial(
+            client = AsyncEverMemOs(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
@@ -1282,7 +1272,7 @@ class TestAsyncEverosTrial:
     def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             with httpx.Client() as http_client:
-                AsyncEverosTrial(
+                AsyncEverMemOs(
                     base_url=base_url,
                     api_key=api_key,
                     _strict_response_validation=True,
@@ -1290,14 +1280,14 @@ class TestAsyncEverosTrial:
                 )
 
     async def test_default_headers_option(self) -> None:
-        test_client = AsyncEverosTrial(
+        test_client = AsyncEverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
         )
         request = test_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
         assert request.headers.get("x-stainless-lang") == "python"
 
-        test_client2 = AsyncEverosTrial(
+        test_client2 = AsyncEverMemOs(
             base_url=base_url,
             api_key=api_key,
             _strict_response_validation=True,
@@ -1314,12 +1304,12 @@ class TestAsyncEverosTrial:
         await test_client2.close()
 
     def test_validate_headers(self) -> None:
-        client = AsyncEverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = AsyncEverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with update_env(**{"EVEROS_TRIAL_API_KEY": Omit()}):
-            client2 = AsyncEverosTrial(base_url=base_url, api_key=None, _strict_response_validation=True)
+        with update_env(**{"EVERMEMOS_API_KEY": Omit()}):
+            client2 = AsyncEverMemOs(base_url=base_url, api_key=None, _strict_response_validation=True)
 
         with pytest.raises(
             TypeError,
@@ -1333,7 +1323,7 @@ class TestAsyncEverosTrial:
         assert request2.headers.get("Authorization") is None
 
     async def test_default_query_option(self) -> None:
-        client = AsyncEverosTrial(
+        client = AsyncEverMemOs(
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1352,7 +1342,7 @@ class TestAsyncEverosTrial:
 
         await client.close()
 
-    def test_request_extra_json(self, client: EverosTrial) -> None:
+    def test_request_extra_json(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1386,7 +1376,7 @@ class TestAsyncEverosTrial:
         data = json.loads(request.content.decode("utf-8"))
         assert data == {"foo": "bar", "baz": None}
 
-    def test_request_extra_headers(self, client: EverosTrial) -> None:
+    def test_request_extra_headers(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1408,7 +1398,7 @@ class TestAsyncEverosTrial:
         )
         assert request.headers.get("X-Bar") == "false"
 
-    def test_request_extra_query(self, client: EverosTrial) -> None:
+    def test_request_extra_query(self, client: EverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1449,7 +1439,7 @@ class TestAsyncEverosTrial:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
-    def test_multipart_repeating_array(self, async_client: AsyncEverosTrial) -> None:
+    def test_multipart_repeating_array(self, async_client: AsyncEverMemOs) -> None:
         request = async_client._build_request(
             FinalRequestOptions.construct(
                 method="post",
@@ -1479,7 +1469,7 @@ class TestAsyncEverosTrial:
         ]
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_binary_content_upload(self, respx_mock: MockRouter, async_client: AsyncEverosTrial) -> None:
+    async def test_binary_content_upload(self, respx_mock: MockRouter, async_client: AsyncEverMemOs) -> None:
         respx_mock.post("/upload").mock(side_effect=mirror_request_content)
 
         file_content = b"Hello, this is a test file."
@@ -1504,7 +1494,7 @@ class TestAsyncEverosTrial:
             assert counter.value == 0, "the request body should not have been read"
             return httpx.Response(200, content=await request.aread())
 
-        async with AsyncEverosTrial(
+        async with AsyncEverMemOs(
             base_url=base_url,
             api_key=api_key,
             _strict_response_validation=True,
@@ -1524,7 +1514,7 @@ class TestAsyncEverosTrial:
 
     @pytest.mark.respx(base_url=base_url)
     async def test_binary_content_upload_with_body_is_deprecated(
-        self, respx_mock: MockRouter, async_client: AsyncEverosTrial
+        self, respx_mock: MockRouter, async_client: AsyncEverMemOs
     ) -> None:
         respx_mock.post("/upload").mock(side_effect=mirror_request_content)
 
@@ -1545,7 +1535,7 @@ class TestAsyncEverosTrial:
         assert response.content == file_content
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_basic_union_response(self, respx_mock: MockRouter, async_client: AsyncEverosTrial) -> None:
+    async def test_basic_union_response(self, respx_mock: MockRouter, async_client: AsyncEverMemOs) -> None:
         class Model1(BaseModel):
             name: str
 
@@ -1559,7 +1549,7 @@ class TestAsyncEverosTrial:
         assert response.foo == "bar"
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_union_response_different_types(self, respx_mock: MockRouter, async_client: AsyncEverosTrial) -> None:
+    async def test_union_response_different_types(self, respx_mock: MockRouter, async_client: AsyncEverMemOs) -> None:
         """Union of objects with the same field name using a different type"""
 
         class Model1(BaseModel):
@@ -1582,7 +1572,7 @@ class TestAsyncEverosTrial:
 
     @pytest.mark.respx(base_url=base_url)
     async def test_non_application_json_content_type_for_json_data(
-        self, respx_mock: MockRouter, async_client: AsyncEverosTrial
+        self, respx_mock: MockRouter, async_client: AsyncEverMemOs
     ) -> None:
         """
         Response that sets Content-Type to something other than application/json but returns json data
@@ -1604,7 +1594,7 @@ class TestAsyncEverosTrial:
         assert response.foo == 2
 
     async def test_base_url_setter(self) -> None:
-        client = AsyncEverosTrial(
+        client = AsyncEverMemOs(
             base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
         )
         assert client.base_url == "https://example.com/from_init/"
@@ -1616,17 +1606,17 @@ class TestAsyncEverosTrial:
         await client.close()
 
     async def test_base_url_env(self) -> None:
-        with update_env(EVEROS_TRIAL_BASE_URL="http://localhost:5000/from/env"):
-            client = AsyncEverosTrial(api_key=api_key, _strict_response_validation=True)
+        with update_env(EVER_MEM_OS_BASE_URL="http://localhost:5000/from/env"):
+            client = AsyncEverMemOs(api_key=api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncEverosTrial(
+            AsyncEverMemOs(
                 base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
             ),
-            AsyncEverosTrial(
+            AsyncEverMemOs(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -1635,7 +1625,7 @@ class TestAsyncEverosTrial:
         ],
         ids=["standard", "custom http client"],
     )
-    async def test_base_url_trailing_slash(self, client: AsyncEverosTrial) -> None:
+    async def test_base_url_trailing_slash(self, client: AsyncEverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1649,10 +1639,10 @@ class TestAsyncEverosTrial:
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncEverosTrial(
+            AsyncEverMemOs(
                 base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
             ),
-            AsyncEverosTrial(
+            AsyncEverMemOs(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -1661,7 +1651,7 @@ class TestAsyncEverosTrial:
         ],
         ids=["standard", "custom http client"],
     )
-    async def test_base_url_no_trailing_slash(self, client: AsyncEverosTrial) -> None:
+    async def test_base_url_no_trailing_slash(self, client: AsyncEverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1675,10 +1665,10 @@ class TestAsyncEverosTrial:
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncEverosTrial(
+            AsyncEverMemOs(
                 base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
             ),
-            AsyncEverosTrial(
+            AsyncEverMemOs(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
@@ -1687,7 +1677,7 @@ class TestAsyncEverosTrial:
         ],
         ids=["standard", "custom http client"],
     )
-    async def test_absolute_request_url(self, client: AsyncEverosTrial) -> None:
+    async def test_absolute_request_url(self, client: AsyncEverMemOs) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1699,7 +1689,7 @@ class TestAsyncEverosTrial:
         await client.close()
 
     async def test_copied_client_does_not_close_http(self) -> None:
-        test_client = AsyncEverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = AsyncEverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         assert not test_client.is_closed()
 
         copied = test_client.copy()
@@ -1711,7 +1701,7 @@ class TestAsyncEverosTrial:
         assert not test_client.is_closed()
 
     async def test_client_context_manager(self) -> None:
-        test_client = AsyncEverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = AsyncEverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         async with test_client as c2:
             assert c2 is test_client
             assert not c2.is_closed()
@@ -1719,9 +1709,7 @@ class TestAsyncEverosTrial:
         assert test_client.is_closed()
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_client_response_validation_error(
-        self, respx_mock: MockRouter, async_client: AsyncEverosTrial
-    ) -> None:
+    async def test_client_response_validation_error(self, respx_mock: MockRouter, async_client: AsyncEverMemOs) -> None:
         class Model(BaseModel):
             foo: str
 
@@ -1734,7 +1722,7 @@ class TestAsyncEverosTrial:
 
     async def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            AsyncEverosTrial(
+            AsyncEverMemOs(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None)
             )
 
@@ -1745,12 +1733,12 @@ class TestAsyncEverosTrial:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = AsyncEverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = AsyncEverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
         with pytest.raises(APIResponseValidationError):
             await strict_client.get("/foo", cast_to=Model)
 
-        non_strict_client = AsyncEverosTrial(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        non_strict_client = AsyncEverMemOs(base_url=base_url, api_key=api_key, _strict_response_validation=False)
 
         response = await non_strict_client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -1781,43 +1769,43 @@ class TestAsyncEverosTrial:
     )
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
     async def test_parse_retry_after_header(
-        self, remaining_retries: int, retry_after: str, timeout: float, async_client: AsyncEverosTrial
+        self, remaining_retries: int, retry_after: str, timeout: float, async_client: AsyncEverMemOs
     ) -> None:
         headers = httpx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = async_client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retrying_timeout_errors_doesnt_leak(
-        self, respx_mock: MockRouter, async_client: AsyncEverosTrial
+        self, respx_mock: MockRouter, async_client: AsyncEverMemOs
     ) -> None:
         respx_mock.post("/api/v1/memories").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            await async_client.v1.with_streaming_response.add_memory(content="content", user_id="user_id").__aenter__()
+            await async_client.memories.with_streaming_response.add(content="content", user_id="user_id").__aenter__()
 
         assert _get_open_connections(async_client) == 0
 
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retrying_status_errors_doesnt_leak(
-        self, respx_mock: MockRouter, async_client: AsyncEverosTrial
+        self, respx_mock: MockRouter, async_client: AsyncEverMemOs
     ) -> None:
         respx_mock.post("/api/v1/memories").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            await async_client.v1.with_streaming_response.add_memory(content="content", user_id="user_id").__aenter__()
+            await async_client.memories.with_streaming_response.add(content="content", user_id="user_id").__aenter__()
         assert _get_open_connections(async_client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     async def test_retries_taken(
         self,
-        async_client: AsyncEverosTrial,
+        async_client: AsyncEverMemOs,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
         respx_mock: MockRouter,
@@ -1837,16 +1825,16 @@ class TestAsyncEverosTrial:
 
         respx_mock.post("/api/v1/memories").mock(side_effect=retry_handler)
 
-        response = await client.v1.with_raw_response.add_memory(content="content", user_id="user_id")
+        response = await client.memories.with_raw_response.add(content="content", user_id="user_id")
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_omit_retry_count_header(
-        self, async_client: AsyncEverosTrial, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncEverMemOs, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
@@ -1861,17 +1849,17 @@ class TestAsyncEverosTrial:
 
         respx_mock.post("/api/v1/memories").mock(side_effect=retry_handler)
 
-        response = await client.v1.with_raw_response.add_memory(
+        response = await client.memories.with_raw_response.add(
             content="content", user_id="user_id", extra_headers={"x-stainless-retry-count": Omit()}
         )
 
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("everos_trial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_overwrite_retry_count_header(
-        self, async_client: AsyncEverosTrial, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncEverMemOs, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
@@ -1886,7 +1874,7 @@ class TestAsyncEverosTrial:
 
         respx_mock.post("/api/v1/memories").mock(side_effect=retry_handler)
 
-        response = await client.v1.with_raw_response.add_memory(
+        response = await client.memories.with_raw_response.add(
             content="content", user_id="user_id", extra_headers={"x-stainless-retry-count": "42"}
         )
 
@@ -1927,7 +1915,7 @@ class TestAsyncEverosTrial:
         )
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncEverosTrial) -> None:
+    async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncEverMemOs) -> None:
         # Test that the default follow_redirects=True allows following redirects
         respx_mock.post("/redirect").mock(
             return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
@@ -1939,7 +1927,7 @@ class TestAsyncEverosTrial:
         assert response.json() == {"status": "ok"}
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_follow_redirects_disabled(self, respx_mock: MockRouter, async_client: AsyncEverosTrial) -> None:
+    async def test_follow_redirects_disabled(self, respx_mock: MockRouter, async_client: AsyncEverMemOs) -> None:
         # Test that follow_redirects=False prevents following redirects
         respx_mock.post("/redirect").mock(
             return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})

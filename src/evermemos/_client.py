@@ -33,22 +33,23 @@ from ._base_client import (
 )
 
 if TYPE_CHECKING:
-    from .resources import v1
-    from .resources.v1.v1 import V1Resource, AsyncV1Resource
+    from .resources import storage, memories
+    from .resources.storage import StorageResource, AsyncStorageResource
+    from .resources.memories import MemoriesResource, AsyncMemoriesResource
 
 __all__ = [
     "Timeout",
     "Transport",
     "ProxiesTypes",
     "RequestOptions",
-    "EverosTrial",
-    "AsyncEverosTrial",
+    "EverMemOs",
+    "AsyncEverMemOs",
     "Client",
     "AsyncClient",
 ]
 
 
-class EverosTrial(SyncAPIClient):
+class EverMemOs(SyncAPIClient):
     # client options
     api_key: str | None
 
@@ -75,16 +76,16 @@ class EverosTrial(SyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
     ) -> None:
-        """Construct a new synchronous EverosTrial client instance.
+        """Construct a new synchronous EverMemOs client instance.
 
-        This automatically infers the `api_key` argument from the `EVEROS_TRIAL_API_KEY` environment variable if it is not provided.
+        This automatically infers the `api_key` argument from the `EVERMEMOS_API_KEY` environment variable if it is not provided.
         """
         if api_key is None:
-            api_key = os.environ.get("EVEROS_TRIAL_API_KEY")
+            api_key = os.environ.get("EVERMEMOS_API_KEY")
         self.api_key = api_key
 
         if base_url is None:
-            base_url = os.environ.get("EVEROS_TRIAL_BASE_URL")
+            base_url = os.environ.get("EVER_MEM_OS_BASE_URL")
         if base_url is None:
             base_url = f"http://localhost:8000"
 
@@ -100,18 +101,24 @@ class EverosTrial(SyncAPIClient):
         )
 
     @cached_property
-    def v1(self) -> V1Resource:
-        from .resources.v1 import V1Resource
+    def memories(self) -> MemoriesResource:
+        from .resources.memories import MemoriesResource
 
-        return V1Resource(self)
-
-    @cached_property
-    def with_raw_response(self) -> EverosTrialWithRawResponse:
-        return EverosTrialWithRawResponse(self)
+        return MemoriesResource(self)
 
     @cached_property
-    def with_streaming_response(self) -> EverosTrialWithStreamedResponse:
-        return EverosTrialWithStreamedResponse(self)
+    def storage(self) -> StorageResource:
+        from .resources.storage import StorageResource
+
+        return StorageResource(self)
+
+    @cached_property
+    def with_raw_response(self) -> EverMemOsWithRawResponse:
+        return EverMemOsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> EverMemOsWithStreamedResponse:
+        return EverMemOsWithStreamedResponse(self)
 
     @property
     @override
@@ -234,7 +241,7 @@ class EverosTrial(SyncAPIClient):
         return APIStatusError(err_msg, response=response, body=body)
 
 
-class AsyncEverosTrial(AsyncAPIClient):
+class AsyncEverMemOs(AsyncAPIClient):
     # client options
     api_key: str | None
 
@@ -261,16 +268,16 @@ class AsyncEverosTrial(AsyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
     ) -> None:
-        """Construct a new async AsyncEverosTrial client instance.
+        """Construct a new async AsyncEverMemOs client instance.
 
-        This automatically infers the `api_key` argument from the `EVEROS_TRIAL_API_KEY` environment variable if it is not provided.
+        This automatically infers the `api_key` argument from the `EVERMEMOS_API_KEY` environment variable if it is not provided.
         """
         if api_key is None:
-            api_key = os.environ.get("EVEROS_TRIAL_API_KEY")
+            api_key = os.environ.get("EVERMEMOS_API_KEY")
         self.api_key = api_key
 
         if base_url is None:
-            base_url = os.environ.get("EVEROS_TRIAL_BASE_URL")
+            base_url = os.environ.get("EVER_MEM_OS_BASE_URL")
         if base_url is None:
             base_url = f"http://localhost:8000"
 
@@ -286,18 +293,24 @@ class AsyncEverosTrial(AsyncAPIClient):
         )
 
     @cached_property
-    def v1(self) -> AsyncV1Resource:
-        from .resources.v1 import AsyncV1Resource
+    def memories(self) -> AsyncMemoriesResource:
+        from .resources.memories import AsyncMemoriesResource
 
-        return AsyncV1Resource(self)
-
-    @cached_property
-    def with_raw_response(self) -> AsyncEverosTrialWithRawResponse:
-        return AsyncEverosTrialWithRawResponse(self)
+        return AsyncMemoriesResource(self)
 
     @cached_property
-    def with_streaming_response(self) -> AsyncEverosTrialWithStreamedResponse:
-        return AsyncEverosTrialWithStreamedResponse(self)
+    def storage(self) -> AsyncStorageResource:
+        from .resources.storage import AsyncStorageResource
+
+        return AsyncStorageResource(self)
+
+    @cached_property
+    def with_raw_response(self) -> AsyncEverMemOsWithRawResponse:
+        return AsyncEverMemOsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AsyncEverMemOsWithStreamedResponse:
+        return AsyncEverMemOsWithStreamedResponse(self)
 
     @property
     @override
@@ -420,58 +433,82 @@ class AsyncEverosTrial(AsyncAPIClient):
         return APIStatusError(err_msg, response=response, body=body)
 
 
-class EverosTrialWithRawResponse:
-    _client: EverosTrial
+class EverMemOsWithRawResponse:
+    _client: EverMemOs
 
-    def __init__(self, client: EverosTrial) -> None:
+    def __init__(self, client: EverMemOs) -> None:
         self._client = client
 
     @cached_property
-    def v1(self) -> v1.V1ResourceWithRawResponse:
-        from .resources.v1 import V1ResourceWithRawResponse
+    def memories(self) -> memories.MemoriesResourceWithRawResponse:
+        from .resources.memories import MemoriesResourceWithRawResponse
 
-        return V1ResourceWithRawResponse(self._client.v1)
+        return MemoriesResourceWithRawResponse(self._client.memories)
+
+    @cached_property
+    def storage(self) -> storage.StorageResourceWithRawResponse:
+        from .resources.storage import StorageResourceWithRawResponse
+
+        return StorageResourceWithRawResponse(self._client.storage)
 
 
-class AsyncEverosTrialWithRawResponse:
-    _client: AsyncEverosTrial
+class AsyncEverMemOsWithRawResponse:
+    _client: AsyncEverMemOs
 
-    def __init__(self, client: AsyncEverosTrial) -> None:
+    def __init__(self, client: AsyncEverMemOs) -> None:
         self._client = client
 
     @cached_property
-    def v1(self) -> v1.AsyncV1ResourceWithRawResponse:
-        from .resources.v1 import AsyncV1ResourceWithRawResponse
+    def memories(self) -> memories.AsyncMemoriesResourceWithRawResponse:
+        from .resources.memories import AsyncMemoriesResourceWithRawResponse
 
-        return AsyncV1ResourceWithRawResponse(self._client.v1)
+        return AsyncMemoriesResourceWithRawResponse(self._client.memories)
+
+    @cached_property
+    def storage(self) -> storage.AsyncStorageResourceWithRawResponse:
+        from .resources.storage import AsyncStorageResourceWithRawResponse
+
+        return AsyncStorageResourceWithRawResponse(self._client.storage)
 
 
-class EverosTrialWithStreamedResponse:
-    _client: EverosTrial
+class EverMemOsWithStreamedResponse:
+    _client: EverMemOs
 
-    def __init__(self, client: EverosTrial) -> None:
+    def __init__(self, client: EverMemOs) -> None:
         self._client = client
 
     @cached_property
-    def v1(self) -> v1.V1ResourceWithStreamingResponse:
-        from .resources.v1 import V1ResourceWithStreamingResponse
+    def memories(self) -> memories.MemoriesResourceWithStreamingResponse:
+        from .resources.memories import MemoriesResourceWithStreamingResponse
 
-        return V1ResourceWithStreamingResponse(self._client.v1)
+        return MemoriesResourceWithStreamingResponse(self._client.memories)
+
+    @cached_property
+    def storage(self) -> storage.StorageResourceWithStreamingResponse:
+        from .resources.storage import StorageResourceWithStreamingResponse
+
+        return StorageResourceWithStreamingResponse(self._client.storage)
 
 
-class AsyncEverosTrialWithStreamedResponse:
-    _client: AsyncEverosTrial
+class AsyncEverMemOsWithStreamedResponse:
+    _client: AsyncEverMemOs
 
-    def __init__(self, client: AsyncEverosTrial) -> None:
+    def __init__(self, client: AsyncEverMemOs) -> None:
         self._client = client
 
     @cached_property
-    def v1(self) -> v1.AsyncV1ResourceWithStreamingResponse:
-        from .resources.v1 import AsyncV1ResourceWithStreamingResponse
+    def memories(self) -> memories.AsyncMemoriesResourceWithStreamingResponse:
+        from .resources.memories import AsyncMemoriesResourceWithStreamingResponse
 
-        return AsyncV1ResourceWithStreamingResponse(self._client.v1)
+        return AsyncMemoriesResourceWithStreamingResponse(self._client.memories)
+
+    @cached_property
+    def storage(self) -> storage.AsyncStorageResourceWithStreamingResponse:
+        from .resources.storage import AsyncStorageResourceWithStreamingResponse
+
+        return AsyncStorageResourceWithStreamingResponse(self._client.storage)
 
 
-Client = EverosTrial
+Client = EverMemOs
 
-AsyncClient = AsyncEverosTrial
+AsyncClient = AsyncEverMemOs
