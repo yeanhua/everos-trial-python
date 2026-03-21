@@ -61,14 +61,6 @@ class MemoriesResource(SyncAPIResource):
         Add a memory (text or multimodal)
 
         Args:
-          content: Memory text content
-
-          user_id: Owner user ID
-
-          object_keys: S3 object keys from presigned upload (required when type != text)
-
-          type: Memory type — drives multimodal routing in SDK
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -133,14 +125,6 @@ class AsyncMemoriesResource(AsyncAPIResource):
         Add a memory (text or multimodal)
 
         Args:
-          content: Memory text content
-
-          user_id: Owner user ID
-
-          object_keys: S3 object keys from presigned upload (required when type != text)
-
-          type: Memory type — drives multimodal routing in SDK
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request

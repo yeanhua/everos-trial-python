@@ -11,13 +11,9 @@ __all__ = ["MemoryAddParams"]
 
 class MemoryAddParams(TypedDict, total=False):
     content: Required[str]
-    """Memory text content"""
 
     user_id: Required[str]
-    """Owner user ID"""
 
     object_keys: SequenceNotStr[str]
-    """S3 object keys from presigned upload (required when type != text)"""
 
     type: Literal["text", "image", "video", "document"]
-    """Memory type — drives multimodal routing in SDK"""
