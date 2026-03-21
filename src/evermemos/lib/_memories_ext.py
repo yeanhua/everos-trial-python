@@ -13,7 +13,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import Callable, List, Optional, TYPE_CHECKING
+
+from ._errors import MultimodalError
+from ._files import FileInput
 
 # 兼容两种 SDK 布局：
 #   Stainless 生成（扁平）: resources/memories.py  → from ..resources.memories import MemoriesResource
@@ -22,9 +25,6 @@ try:
     from ..resources.memories.memories import MemoriesResource  # sdk_stub / package layout
 except ModuleNotFoundError:
     from ..resources.memories import MemoriesResource  # type: ignore[no-redef]  # Stainless flat layout
-
-from ._errors import MultimodalError
-from ._files import FileInput
 
 if TYPE_CHECKING:
     from ..types.memory_add_response import MemoryAddResponse

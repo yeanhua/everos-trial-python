@@ -11,7 +11,7 @@ from ._errors import UploadError
 from ._files import ResolvedFile
 
 if TYPE_CHECKING:
-    from .._client import EverMemOS, AsyncEverMemOS
+    from .._client import AsyncEverMemOS, EverMemOS
 
 
 @dataclass
@@ -94,7 +94,7 @@ def _file_chunk_iter(resolved: ResolvedFile):
 def _stream_upload_to_s3(presigned_url: str, resolved: ResolvedFile) -> None:
     """同步流式 PUT —— 文件不整体读入内存。"""
     last_error = None
-    for attempt in range(_MAX_RETRIES):
+    for _attempt in range(_MAX_RETRIES):
         try:
             with httpx.Client(timeout=_UPLOAD_TIMEOUT) as http:
                 resp = http.put(
@@ -133,7 +133,7 @@ async def _async_stream_upload_to_s3(presigned_url: str, resolved: ResolvedFile)
             await anyio.to_thread.run_sync(f.close)
 
     last_error = None
-    for attempt in range(_MAX_RETRIES):
+    for _attempt in range(_MAX_RETRIES):
         try:
             async with httpx.AsyncClient(timeout=_UPLOAD_TIMEOUT) as http:
                 resp = await http.put(
