@@ -13,7 +13,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Literal, Callable, Optional, cast
+from typing import TYPE_CHECKING, Any, List, Literal, Callable, Optional, cast
+from typing_extensions import override
 
 from ._files import FileInput
 from ._errors import MultimodalError
@@ -30,7 +31,8 @@ _ALLOWED_TYPES = frozenset({"text", "image", "video", "document"})
 class MemoriesResourceWithMultimodal(MemoriesResource):
     """继承生成的 MemoriesResource，override add() 增加多模态路由。"""
 
-    def add(
+    @override
+    def add(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         *,
         content: str,
@@ -40,7 +42,7 @@ class MemoriesResourceWithMultimodal(MemoriesResource):
         on_progress: Optional[Callable[[str, int, int], None]] = None,
         max_workers: int = 4,
         object_keys: Optional[List[str]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "MemoryAddResponse":
         """添加记忆 — 纯文本和多模态统一入口。
 
@@ -74,8 +76,11 @@ class MemoriesResourceWithMultimodal(MemoriesResource):
         # 路径 2：底层逃生舱 — 用户已手动上传
         if object_keys is not None:
             return super().add(
-                content=content, type=type, user_id=user_id,
-                object_keys=object_keys, **kwargs,
+                content=content,
+                type=cast("Literal['image', 'video', 'document']", type),
+                user_id=user_id,
+                object_keys=object_keys,
+                **kwargs,
             )
 
         # 路径 3：高层多模态 — SDK 自动编排

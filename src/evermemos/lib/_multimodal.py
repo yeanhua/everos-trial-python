@@ -8,7 +8,7 @@ Best-effort fail-fast：尽早发现失败并取消尚未开始的任务。
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Literal, Callable
+from typing import TYPE_CHECKING, Any, Literal, Callable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
 from ._files import FileInput, ResolvedFile, resolve_file, async_resolve_file
@@ -35,7 +35,7 @@ def upload_files_and_add(
     on_progress: Callable[[str, int, int], None] | None = None,
     max_workers: int = 4,
     raw_add_fn: "Callable[..., MemoryAddResponse]",
-    **kwargs,
+    **kwargs: Any,
 ) -> "MemoryAddResponse":
     """同步编排：顺序解析 → 保序并发上传（best-effort fail-fast）→ add。
 
@@ -126,7 +126,7 @@ async def async_upload_files_and_add(
     user_id: str,
     on_progress: Callable[[str, int, int], None] | None = None,
     raw_add_fn: "Callable[..., Awaitable[MemoryAddResponse]]",
-    **kwargs,
+    **kwargs: Any,
 ) -> "MemoryAddResponse":
     """异步编排：并发解析（保序）→ 并发上传（fail-fast）→ add。
 
@@ -157,7 +157,7 @@ async def async_upload_files_and_add(
         # Step 2: 并发上传，保序 + fail-fast
         client = resource._client
 
-        task_to_idx: dict[asyncio.Task, int] = {}
+        task_to_idx: dict[asyncio.Task[UploadResult], int] = {}
         upload_tasks: list[asyncio.Task[UploadResult]] = []
         for i in range(n):
             task = asyncio.create_task(

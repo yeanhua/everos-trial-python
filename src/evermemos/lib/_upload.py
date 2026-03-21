@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, BinaryIO, cast
 from dataclasses import dataclass
 
 import httpx
@@ -122,10 +122,10 @@ async def _async_stream_upload_to_s3(presigned_url: str, resolved: ResolvedFile)
     import anyio
 
     async def _async_chunks():
-        f = await anyio.to_thread.run_sync(resolved.open)  # type: ignore[reportUnknownMemberType]
+        f = cast(BinaryIO, await anyio.to_thread.run_sync(resolved.open))  # type: ignore[reportUnknownMemberType]
         try:
             while True:
-                chunk = await anyio.to_thread.run_sync(lambda: f.read(_CHUNK_SIZE))  # type: ignore[reportUnknownMemberType]
+                chunk = cast(bytes, await anyio.to_thread.run_sync(lambda: f.read(_CHUNK_SIZE)))  # type: ignore[reportUnknownMemberType]
                 if not chunk:
                     break
                 yield chunk
