@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from dataclasses import dataclass
 
 import httpx
 
-from ._errors import UploadError
 from ._files import ResolvedFile
+from ._errors import UploadError
 
 if TYPE_CHECKING:
-    from .._client import AsyncEverMemOS, EverMemOS
+    from .._client import EverMemOS, AsyncEverMemOS
 
 
 @dataclass

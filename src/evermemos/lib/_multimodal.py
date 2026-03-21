@@ -8,16 +8,16 @@ Best-effort fail-fast：尽早发现失败并取消尚未开始的任务。
 from __future__ import annotations
 
 import asyncio
-from concurrent.futures import as_completed, Future, ThreadPoolExecutor
-from typing import Callable, Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, Callable
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
-from ._errors import FileResolveError, MultimodalError
-from ._files import async_resolve_file, FileInput, resolve_file, ResolvedFile
-from ._upload import async_presign_and_upload, presign_and_upload, UploadResult
+from ._files import FileInput, ResolvedFile, resolve_file, async_resolve_file
+from ._errors import MultimodalError, FileResolveError
+from ._upload import UploadResult, presign_and_upload, async_presign_and_upload
 
 if TYPE_CHECKING:
-    from ..resources.memories.memories import AsyncMemoriesResource, MemoriesResource
     from ..types.memory_add_response import MemoryAddResponse
+    from ..resources.memories.memories import MemoriesResource, AsyncMemoriesResource
 
 
 # ─── 同步版本 ───

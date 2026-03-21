@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import mimetypes
 import os
 import tempfile
-from dataclasses import dataclass
+import mimetypes
+from typing import Union, BinaryIO
 from pathlib import Path
-from typing import BinaryIO, Union
+from dataclasses import dataclass
 from urllib.parse import unquote, urlparse
 
 import httpx

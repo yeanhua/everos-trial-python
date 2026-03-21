@@ -13,10 +13,10 @@
 
 from __future__ import annotations
 
-from typing import Callable, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Callable, Optional
 
-from ._errors import MultimodalError
 from ._files import FileInput
+from ._errors import MultimodalError
 
 # 兼容两种 SDK 布局：
 #   Stainless 生成（扁平）: resources/memories.py  → from ..resources.memories import MemoriesResource
