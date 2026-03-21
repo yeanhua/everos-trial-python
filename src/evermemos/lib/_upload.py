@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, BinaryIO, cast
+from typing import TYPE_CHECKING, BinaryIO, Iterator, AsyncGenerator, cast
 from dataclasses import dataclass
 
 import httpx
@@ -81,7 +81,7 @@ async def async_presign_and_upload(
 # ─── 流式 S3 上传 ───
 
 
-def _file_chunk_iter(resolved: ResolvedFile):
+def _file_chunk_iter(resolved: ResolvedFile) -> Iterator[bytes]:
     """生成器：流式读取文件分块。"""
     with resolved.open() as f:
         while True:
@@ -121,7 +121,7 @@ async def _async_stream_upload_to_s3(presigned_url: str, resolved: ResolvedFile)
     """异步流式 PUT。"""
     import anyio
 
-    async def _async_chunks():
+    async def _async_chunks() -> AsyncGenerator[bytes, None]:
         f = cast(BinaryIO, await anyio.to_thread.run_sync(resolved.open))  # type: ignore[reportUnknownMemberType]
         try:
             while True:

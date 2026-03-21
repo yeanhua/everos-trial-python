@@ -146,9 +146,9 @@ async def async_upload_files_and_add(
 
         for i, result in enumerate(resolve_results):
             if isinstance(result, BaseException):
-                for r in resolve_results[:i]:
-                    if isinstance(r, ResolvedFile):
-                        r.cleanup()
+                for prev in resolve_results[:i]:
+                    if isinstance(prev, ResolvedFile):
+                        prev.cleanup()
                 raise FileResolveError(
                     f"Failed to resolve files[{i}] ({_file_desc(files[i])}): {result}"
                 ) from result

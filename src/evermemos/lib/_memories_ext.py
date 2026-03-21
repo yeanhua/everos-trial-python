@@ -32,7 +32,7 @@ class MemoriesResourceWithMultimodal(MemoriesResource):
     """继承生成的 MemoriesResource，override add() 增加多模态路由。"""
 
     @override
-    def add(  # pyright: ignore[reportIncompatibleMethodOverride]
+    def add(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         *,
         content: str,
@@ -71,7 +71,7 @@ class MemoriesResourceWithMultimodal(MemoriesResource):
                     "files parameter is not allowed when type='text'. "
                     "Set type to 'image', 'video', or 'document' for multimodal content."
                 )
-            return super().add(content=content, type=type, user_id=user_id, **kwargs)
+            return super().add(content=content, type=type, user_id=user_id, **kwargs)  # type: ignore[arg-type]
 
         # 路径 2：底层逃生舱 — 用户已手动上传
         if object_keys is not None:
