@@ -1,5 +1,5 @@
 [project]
-name = "evermemos"
+name = "everostrial"
 version = "0.1.0"
 description = "The official Python library for the EverMemOS API"
 dynamic = ["readme"]
@@ -86,7 +86,7 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/evermemos"]
+packages = ["src/everostrial"]
 
 [tool.hatch.build.targets.sdist]
 # Basically everything except hidden files/directories (such as .github, .devcontainers, .python-version, etc)
@@ -154,7 +154,7 @@ show_error_codes = true
 #
 # We also exclude our `tests` as mypy doesn't always infer
 # types correctly and Pyright will still catch any type errors.
-exclude = ['src/evermemos/_files.py', '_dev/.*.py', 'tests/.*']
+exclude = ['src/everostrial/_files.py', '_dev/.*.py', 'tests/.*']
 
 strict_equality = true
 implicit_reexport = true
@@ -246,7 +246,7 @@ length-sort = true
 length-sort-straight = true
 combine-as-imports = true
 extra-standard-library = ["typing_extensions"]
-known-first-party = ["evermemos", "tests"]
+known-first-party = ["everostrial", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
 "bin/**.py" = ["T201", "T203"]
