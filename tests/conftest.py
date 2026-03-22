@@ -10,15 +10,15 @@ import httpx
 import pytest
 from pytest_asyncio import is_async_test
 
-from everostrial import EverMemOs, AsyncEverMemOs, DefaultAioHttpClient
-from everostrial._utils import is_dict
+from evermemos import EverMemOs, AsyncEverMemOs, DefaultAioHttpClient
+from evermemos._utils import is_dict
 
 if TYPE_CHECKING:
     from _pytest.fixtures import FixtureRequest  # pyright: ignore[reportPrivateImportUsage]
 
 pytest.register_assert_rewrite("tests.utils")
 
-logging.getLogger("everostrial").setLevel(logging.DEBUG)
+logging.getLogger("evermemos").setLevel(logging.DEBUG)
 
 
 # automatically add `pytest.mark.asyncio()` to all of our async tests
