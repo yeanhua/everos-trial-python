@@ -4,8 +4,8 @@ from typing import Sequence
 
 import pytest
 
-from evermemos._types import FileTypes
-from evermemos._utils import extract_files
+from everostrial._types import FileTypes
+from everostrial._utils import extract_files
 
 
 def test_removes_files_from_input() -> None:
