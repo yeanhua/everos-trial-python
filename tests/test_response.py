@@ -6,8 +6,8 @@ import httpx
 import pytest
 import pydantic
 
-from everostrial import BaseModel, EverMemOs, AsyncEverMemOs
-from everostrial._response import (
+from evermemos import BaseModel, EverMemOs, AsyncEverMemOs
+from evermemos._response import (
     APIResponse,
     BaseAPIResponse,
     AsyncAPIResponse,
@@ -15,8 +15,8 @@ from everostrial._response import (
     AsyncBinaryAPIResponse,
     extract_response_type,
 )
-from everostrial._streaming import Stream
-from everostrial._base_client import FinalRequestOptions
+from evermemos._streaming import Stream
+from evermemos._base_client import FinalRequestOptions
 
 
 class ConcreteBaseAPIResponse(APIResponse[bytes]): ...
@@ -37,7 +37,7 @@ def test_extract_response_type_direct_classes() -> None:
 def test_extract_response_type_direct_class_missing_type_arg() -> None:
     with pytest.raises(
         RuntimeError,
-        match="Expected type <class 'everostrial._response.AsyncAPIResponse'> to have a type argument at index 0 but it did not",
+        match="Expected type <class 'evermemos._response.AsyncAPIResponse'> to have a type argument at index 0 but it did not",
     ):
         extract_response_type(AsyncAPIResponse)
 
@@ -68,7 +68,7 @@ def test_response_parse_mismatched_basemodel(client: EverMemOs) -> None:
 
     with pytest.raises(
         TypeError,
-        match="Pydantic models must subclass our base model type, e.g. `from everostrial import BaseModel`",
+        match="Pydantic models must subclass our base model type, e.g. `from evermemos import BaseModel`",
     ):
         response.parse(to=PydanticModel)
 
@@ -86,7 +86,7 @@ async def test_async_response_parse_mismatched_basemodel(async_client: AsyncEver
 
     with pytest.raises(
         TypeError,
-        match="Pydantic models must subclass our base model type, e.g. `from everostrial import BaseModel`",
+        match="Pydantic models must subclass our base model type, e.g. `from evermemos import BaseModel`",
     ):
         await response.parse(to=PydanticModel)
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 (2026-03-22)
+
+Full Changelog: [v0.1.1...v0.1.2](https://github.com/yeanhua/everos-trial-python/compare/v0.1.1...v0.1.2)
+
+### Features
+
+* **api:** api update ([7d27dfb](https://github.com/yeanhua/everos-trial-python/commit/7d27dfbd3e82be079267121bb2be22033c90a7e5))
+
 ## 0.1.1 (2026-03-22)
 
 Full Changelog: [v0.1.0...v0.1.1](https://github.com/yeanhua/everos-trial-python/compare/v0.1.0...v0.1.1)
