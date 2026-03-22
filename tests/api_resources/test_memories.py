@@ -7,9 +7,9 @@ from typing import Any, cast
 
 import pytest
 
-from evermemos import EverMemOs, AsyncEverMemOs
+from everostrial import EverMemOs, AsyncEverMemOs
 from tests.utils import assert_matches_type
-from evermemos.types import MemoryAddResponse, MemoryRetrieveResponse
+from everostrial.types import MemoryAddResponse, MemoryRetrieveResponse
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
