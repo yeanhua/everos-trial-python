@@ -8,15 +8,15 @@ from typing_extensions import Required, Annotated, TypedDict
 
 import pytest
 
-from everostrial._types import Base64FileInput, omit, not_given
-from everostrial._utils import (
+from evermemos._types import Base64FileInput, omit, not_given
+from evermemos._utils import (
     PropertyInfo,
     transform as _transform,
     parse_datetime,
     async_transform as _async_transform,
 )
-from everostrial._compat import PYDANTIC_V1
-from everostrial._models import BaseModel
+from evermemos._compat import PYDANTIC_V1
+from evermemos._models import BaseModel
 
 _T = TypeVar("_T")
 

@@ -61,6 +61,6 @@
   ],
   "release-type": "python",
   "extra-files": [
-    "src/everostrial/_version.py"
+    "src/evermemos/_version.py"
   ]
 }
