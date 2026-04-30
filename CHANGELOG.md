@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.1.3 (2026-04-30)
+
+Full Changelog: [v0.1.2...v0.1.3](https://github.com/yeanhua/everos-trial-python/compare/v0.1.2...v0.1.3)
+
+### Features
+
+* **api:** api update ([575bc79](https://github.com/yeanhua/everos-trial-python/commit/575bc795baea564139b826df19ba11c7b87eb2f8))
+* **internal:** implement indices array format for query and form serialization ([410a6c6](https://github.com/yeanhua/everos-trial-python/commit/410a6c6db6667278f84fd4f3aa9a459d9f9e88e3))
+* support setting headers via env ([1cd9e83](https://github.com/yeanhua/everos-trial-python/commit/1cd9e83a263d741f8475230df1d669bcbaa9658d))
+
+
+### Bug Fixes
+
+* **client:** preserve hardcoded query params when merging with user params ([02386d5](https://github.com/yeanhua/everos-trial-python/commit/02386d58aa43ab8e607d7a22c84e27f9a6810390))
+* ensure file data are only sent as 1 parameter ([96dc750](https://github.com/yeanhua/everos-trial-python/commit/96dc750820f9b785396fba289f1d0d239d9ac2b0))
+* **memories:** fix package name ([bb8c5b5](https://github.com/yeanhua/everos-trial-python/commit/bb8c5b5a03ea1e80809d7c9167391510742bf86c))
+* use correct field name format for multipart file arrays ([aefa351](https://github.com/yeanhua/everos-trial-python/commit/aefa351686a4d4705285288c14230b044a4e8457))
+
+
+### Performance Improvements
+
+* **client:** optimize file structure copying in multipart requests ([236112f](https://github.com/yeanhua/everos-trial-python/commit/236112fc78beb4ef9cf5876c017cfa1f0b832646))
+
+
+### Chores
+
+* **ci:** skip lint on metadata-only changes ([0a57dda](https://github.com/yeanhua/everos-trial-python/commit/0a57ddaab9d3723109f00e54cd9e5a406e2cbc52))
+* **internal:** more robust bootstrap script ([1f3e2bc](https://github.com/yeanhua/everos-trial-python/commit/1f3e2bccbddb8ff428d79c8e9cdac44c5582d7f6))
+* **internal:** update gitignore ([c0d985b](https://github.com/yeanhua/everos-trial-python/commit/c0d985bf05045bffd3e090e3a9128655935d98a9))
+
 ## 0.1.2 (2026-03-22)
 
 Full Changelog: [v0.1.1...v0.1.2](https://github.com/yeanhua/everos-trial-python/compare/v0.1.1...v0.1.2)
