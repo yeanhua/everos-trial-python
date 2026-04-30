@@ -19,12 +19,12 @@ import pytest
 from respx import MockRouter
 from pydantic import ValidationError
 
-from evermemos import EverMemOs, AsyncEverMemOs, APIResponseValidationError
-from evermemos._types import Omit
-from evermemos._utils import asyncify
-from evermemos._models import BaseModel, FinalRequestOptions
-from evermemos._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
-from evermemos._base_client import (
+from everostrial import EverMemOs, AsyncEverMemOs, APIResponseValidationError
+from everostrial._types import Omit
+from everostrial._utils import asyncify
+from everostrial._models import BaseModel, FinalRequestOptions
+from everostrial._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
+from everostrial._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
     BaseClient,
@@ -286,10 +286,10 @@ class TestEverMemOs:
                         # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
                         #
                         # removing the decorator fixes the leak for reasons we don't understand.
-                        "evermemos/_legacy_response.py",
-                        "evermemos/_response.py",
+                        "everostrial/_legacy_response.py",
+                        "everostrial/_response.py",
                         # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
-                        "evermemos/_compat.py",
+                        "everostrial/_compat.py",
                         # Standard library leaks we don't care about.
                         "/logging/__init__.py",
                     ]
@@ -437,6 +437,30 @@ class TestEverMemOs:
         assert dict(url.params) == {"foo": "baz", "query_param": "overridden"}
 
         client.close()
+
+    def test_hardcoded_query_params_in_url(self, client: EverMemOs) -> None:
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo?beta=true"))
+        url = httpx.URL(request.url)
+        assert dict(url.params) == {"beta": "true"}
+
+        request = client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/foo?beta=true",
+                params={"limit": "10", "page": "abc"},
+            )
+        )
+        url = httpx.URL(request.url)
+        assert dict(url.params) == {"beta": "true", "limit": "10", "page": "abc"}
+
+        request = client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/files/a%2Fb?beta=true",
+                params={"limit": "10"},
+            )
+        )
+        assert request.url.raw_path == b"/files/a%2Fb?beta=true&limit=10"
 
     def test_request_extra_json(self, client: EverMemOs) -> None:
         request = client._build_request(
@@ -857,7 +881,7 @@ class TestEverMemOs:
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         respx_mock.post("/api/v1/memories").mock(side_effect=httpx.TimeoutException("Test timeout error"))
@@ -867,7 +891,7 @@ class TestEverMemOs:
 
         assert _get_open_connections(client) == 0
 
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: EverMemOs) -> None:
         respx_mock.post("/api/v1/memories").mock(return_value=httpx.Response(500))
@@ -877,7 +901,7 @@ class TestEverMemOs:
         assert _get_open_connections(client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     def test_retries_taken(
@@ -908,7 +932,7 @@ class TestEverMemOs:
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_omit_retry_count_header(
         self, client: EverMemOs, failures_before_success: int, respx_mock: MockRouter
@@ -933,7 +957,7 @@ class TestEverMemOs:
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_overwrite_retry_count_header(
         self, client: EverMemOs, failures_before_success: int, respx_mock: MockRouter
@@ -1188,10 +1212,10 @@ class TestAsyncEverMemOs:
                         # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
                         #
                         # removing the decorator fixes the leak for reasons we don't understand.
-                        "evermemos/_legacy_response.py",
-                        "evermemos/_response.py",
+                        "everostrial/_legacy_response.py",
+                        "everostrial/_response.py",
                         # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
-                        "evermemos/_compat.py",
+                        "everostrial/_compat.py",
                         # Standard library leaks we don't care about.
                         "/logging/__init__.py",
                     ]
@@ -1341,6 +1365,30 @@ class TestAsyncEverMemOs:
         assert dict(url.params) == {"foo": "baz", "query_param": "overridden"}
 
         await client.close()
+
+    async def test_hardcoded_query_params_in_url(self, async_client: AsyncEverMemOs) -> None:
+        request = async_client._build_request(FinalRequestOptions(method="get", url="/foo?beta=true"))
+        url = httpx.URL(request.url)
+        assert dict(url.params) == {"beta": "true"}
+
+        request = async_client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/foo?beta=true",
+                params={"limit": "10", "page": "abc"},
+            )
+        )
+        url = httpx.URL(request.url)
+        assert dict(url.params) == {"beta": "true", "limit": "10", "page": "abc"}
+
+        request = async_client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/files/a%2Fb?beta=true",
+                params={"limit": "10"},
+            )
+        )
+        assert request.url.raw_path == b"/files/a%2Fb?beta=true&limit=10"
 
     def test_request_extra_json(self, client: EverMemOs) -> None:
         request = client._build_request(
@@ -1776,7 +1824,7 @@ class TestAsyncEverMemOs:
         calculated = async_client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retrying_timeout_errors_doesnt_leak(
         self, respx_mock: MockRouter, async_client: AsyncEverMemOs
@@ -1788,7 +1836,7 @@ class TestAsyncEverMemOs:
 
         assert _get_open_connections(async_client) == 0
 
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retrying_status_errors_doesnt_leak(
         self, respx_mock: MockRouter, async_client: AsyncEverMemOs
@@ -1800,7 +1848,7 @@ class TestAsyncEverMemOs:
         assert _get_open_connections(async_client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     async def test_retries_taken(
@@ -1831,7 +1879,7 @@ class TestAsyncEverMemOs:
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_omit_retry_count_header(
         self, async_client: AsyncEverMemOs, failures_before_success: int, respx_mock: MockRouter
@@ -1856,7 +1904,7 @@ class TestAsyncEverMemOs:
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("evermemos._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("everostrial._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_overwrite_retry_count_header(
         self, async_client: AsyncEverMemOs, failures_before_success: int, respx_mock: MockRouter
