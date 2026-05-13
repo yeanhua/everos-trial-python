@@ -129,7 +129,7 @@ def _resolve_from_url(
     fi: FileInput, max_size: int, timeout: float
 ) -> ResolvedFile:
     """URL 文件：流式下载到临时文件，边下边计数，超限立即中断。"""
-    tmp_fd, tmp_path = tempfile.mkstemp(prefix="evermemos_")
+    tmp_fd, tmp_path = tempfile.mkstemp(prefix="everostrial_")
     tmp_file = Path(tmp_path)
     downloaded = 0
 
@@ -174,7 +174,7 @@ async def _async_resolve_from_url(
     fi: FileInput, max_size: int, timeout: float,
 ) -> ResolvedFile:
     """异步版流式 URL 下载。"""
-    tmp_fd, tmp_path = tempfile.mkstemp(prefix="evermemos_")
+    tmp_fd, tmp_path = tempfile.mkstemp(prefix="everostrial_")
     tmp_file = Path(tmp_path)
     downloaded = 0
 
@@ -215,7 +215,7 @@ async def _async_resolve_from_url(
 
 def _resolve_from_data(fi: FileInput) -> ResolvedFile:
     """bytes/BinaryIO：分块写入临时文件，BinaryIO 不全量读入内存。"""
-    tmp_fd, tmp_path = tempfile.mkstemp(prefix="evermemos_")
+    tmp_fd, tmp_path = tempfile.mkstemp(prefix="everostrial_")
     total_size = 0
 
     with os.fdopen(tmp_fd, "wb") as f:

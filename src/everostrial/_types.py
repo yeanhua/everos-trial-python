@@ -47,6 +47,9 @@ AnyMapping = Mapping[str, object]
 ModelT = TypeVar("ModelT", bound=pydantic.BaseModel)
 _T = TypeVar("_T")
 
+ArrayFormat = Literal["comma", "repeat", "indices", "brackets"]
+NestedFormat = Literal["dots", "brackets"]
+
 
 # Approximates httpx internal ProxiesTypes and RequestFiles types
 # while adding support for `PathLike` instances
@@ -101,7 +104,7 @@ HttpxRequestFiles = Union[Mapping[str, HttpxFileTypes], Sequence[Tuple[str, Http
 # This unfortunately means that you will either have
 # to import this type and pass it explicitly:
 #
-# from evermemos import NoneType
+# from everostrial import NoneType
 # client.get('/foo', cast_to=NoneType)
 #
 # or build it yourself:
