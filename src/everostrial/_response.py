@@ -220,7 +220,9 @@ class BaseAPIResponse(Generic[R]):
             and not issubclass(origin, BaseModel)
             and issubclass(origin, pydantic.BaseModel)
         ):
-            raise TypeError("Pydantic models must subclass our base model type, e.g. `from evermemos import BaseModel`")
+            raise TypeError(
+                "Pydantic models must subclass our base model type, e.g. `from everostrial import BaseModel`"
+            )
 
         if (
             cast_to is not object
@@ -286,7 +288,7 @@ class APIResponse(BaseAPIResponse[R]):
         the `to` argument, e.g.
 
         ```py
-        from evermemos import BaseModel
+        from everostrial import BaseModel
 
 
         class MyModel(BaseModel):
@@ -388,7 +390,7 @@ class AsyncAPIResponse(BaseAPIResponse[R]):
         the `to` argument, e.g.
 
         ```py
-        from evermemos import BaseModel
+        from everostrial import BaseModel
 
 
         class MyModel(BaseModel):
@@ -559,7 +561,7 @@ class AsyncStreamedBinaryAPIResponse(AsyncAPIResponse[bytes]):
 class MissingStreamClassError(TypeError):
     def __init__(self) -> None:
         super().__init__(
-            "The `stream` argument was set to `True` but the `stream_cls` argument was not given. See `evermemos._streaming` for reference",
+            "The `stream` argument was set to `True` but the `stream_cls` argument was not given. See `everostrial._streaming` for reference",
         )
 
 
